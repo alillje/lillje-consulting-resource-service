@@ -92,15 +92,13 @@ export class ResourcesController {
       }
 
       // Validate and blacklist "<>" before saving to any database
-      const dataSanitized = validator.blacklist(req.body.title, '<>')
+      const titleSanitized = validator.blacklist(req.body.title, '<>')
       const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
 
 
-      const json = await response.json()
-
       // Set properties of image
       const resource = new Resource({
-        title: json.title,
+        title: titleSanitized,
         description: descriptionSanitized,
         author: req.user.sub,
       })
@@ -114,8 +112,9 @@ export class ResourcesController {
       // )
 
       // Respond with resource data
-      res
+
         // .location(location.href)
+      res
         .status(201)
         .json(resource)
     } catch (err) {

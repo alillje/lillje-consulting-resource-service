@@ -6,9 +6,9 @@
  */
 
 import express from 'express'
-import { router as imagesRouter } from './images-router.js'
+import { router as ResourcesRouter } from './resources-router.js'
 
 export const router = express.Router()
 
-router.get('/', (req, res) => res.json({ message: 'This is the picture-it API' }))
-router.use('/images', imagesRouter)
+router.get('/', (req, res) => res.json({ message: 'Resources API' }))
+router.use('/resources', ResourcesRouter)

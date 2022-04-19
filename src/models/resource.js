@@ -48,4 +48,4 @@ schema.virtual('id').get(function () {
 })
 
 // Create a model using the schema.
-export const Image = mongoose.model('Resource', schema)
+export const Resource = mongoose.model('Resource', schema)
