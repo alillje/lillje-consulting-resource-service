@@ -37,8 +37,6 @@ const authenticateJWT = (req, res, next) => {
     req.user = {
       sub: payload.sub,
       username: payload.username,
-      firstName: payload.given_name,
-      lastName: payload.family_name,
       email: payload.email
     }
 

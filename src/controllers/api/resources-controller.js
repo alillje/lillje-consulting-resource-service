@@ -24,7 +24,7 @@ export class ResourcesController {
   async loadResource (req, res, next, id) {
     try {
       // Get the image.
-      const image = await Resource.findById(id)
+      const resource = await Resource.findById(id)
 
       // If no image found send 404, set error message.
       if (!resource) {
@@ -87,20 +87,20 @@ export class ResourcesController {
    */
   async create (req, res, next) {
     try {
-      if (!req.body.title || !req.body.description) {
+      if (!req.body.date || !req.body.description || !req.body.company) {
         throw new Error('Validation error')
       }
 
       // Validate and blacklist "<>" before saving to any database
-      const titleSanitized = validator.blacklist(req.body.title, '<>')
       const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
-
+      const companySanitized = req.body.company ? validator.blacklist(req.body.company, '<>') : undefined
 
       // Set properties of image
       const resource = new Resource({
-        title: titleSanitized,
         description: descriptionSanitized,
-        author: req.user.sub,
+        company: companySanitized,
+        invoiceDate: req.body.date,
+        author: req.user.sub
       })
 
       await resource.save()
@@ -113,11 +113,12 @@ export class ResourcesController {
 
       // Respond with resource data
 
-        // .location(location.href)
+      // .location(location.href)
       res
         .status(201)
         .json(resource)
     } catch (err) {
+      console.log(err)
       const error = createError(400)
       next(error)
     }
@@ -133,13 +134,12 @@ export class ResourcesController {
   async updatePatch (req, res, next) {
     try {
       // Sanitize data description if any
-      const title = req.body.title ? validator.blacklist(req.body.data, '<>') : undefined
+      const titleSanitized = req.body.title ? validator.blacklist(req.body.data, '<>') : undefined
       const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
 
       // Use conditional tenary operator to check if description or contentType has been changed
-      req.resource.title = req.body.title ? req.body.title : req.resource.title
+      req.resource.title = req.body.title ? titleSanitized : req.resource.title
       req.resource.description = req.body.description ? descriptionSanitized : req.resource.title
-
 
       await req.image.save()
 
@@ -168,9 +168,8 @@ export class ResourcesController {
       const titleSanitized = req.body.title ? validator.blacklist(req.body.title, '<>') : undefined
       const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
 
-
       // Set properties of image
-      req.resource.title = req.body.titleSanitized
+      req.resource.title = titleSanitized
       req.resource.description = descriptionSanitized
       req.resource.author = req.user.sub
 

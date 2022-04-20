@@ -9,21 +9,26 @@ import mongoose from 'mongoose'
 
 // Schema.
 const schema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Title is required.'],
-    trim: true
-  },
   description: {
     type: String,
     trim: true,
-    required: [true, 'Description is required.'],
+    required: [true, 'Description is required.']
   },
   author: {
     type: String,
     required: [true, 'Author is required.'],
     trim: true
   },
+  invoiceDate: {
+    type: Date
+    // required: [true, 'Date is required.'],
+  },
+  company: {
+    type: String,
+    trim: true,
+    required: [true, 'Company is required.']
+  }
+
 }, {
   timestamps: true,
   toJSON: {
