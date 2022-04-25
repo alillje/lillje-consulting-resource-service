@@ -27,6 +27,10 @@ const schema = new mongoose.Schema({
     type: String,
     trim: true,
     required: [true, 'Company is required.']
+  },
+  done: {
+    type: Boolean,
+    default: false
   }
 
 }, {

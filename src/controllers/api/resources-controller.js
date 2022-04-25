@@ -69,9 +69,20 @@ export class ResourcesController {
    * @param {Function} next - Express next middleware function.
    */
   async findAll (req, res, next) {
+    const query = {}
+    query.author = req.user.sub
+    if (req.query.company) {
+      query.company = req.query.company
+    } if (req.query.done) {
+      query.done = req.query.done
+    }
     try {
-      // Fine images only for authenticated user and respond
-      const resources = await Resource.find({ author: req.user.sub })
+      // Find resources only for authenticated user and respond
+      // const resources = await Resource.find({ author: req.user.sub })
+
+      // const resources = await Resource.find({ author: req.user.sub })
+      const resources = await Resource.find(query)
+
       res.json(resources)
     } catch (error) {
       next(error)
@@ -100,7 +111,8 @@ export class ResourcesController {
         description: descriptionSanitized,
         company: companySanitized,
         invoiceDate: req.body.date,
-        author: req.user.sub
+        author: req.user.sub,
+        done: req.body?.done
       })
 
       await resource.save()
