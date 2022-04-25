@@ -72,10 +72,14 @@ export class ResourcesController {
     const query = {}
     query.author = req.user.sub
     if (req.query.company) {
-      query.company = req.query.company
-    } if (req.query.done) {
+      // Make search case insensitive
+      query.company = new RegExp(`^${req.query.company}$`, 'i')
+    } else if (req.query.done) {
       query.done = req.query.done
+    } else if (req.user?.admin && req.query.author) {
+      query.author = req.query.author
     }
+    console.log(req.user)
     try {
       // Find resources only for authenticated user and respond
       // const resources = await Resource.find({ author: req.user.sub })
