@@ -115,6 +115,7 @@ export class ResourcesController {
         description: descriptionSanitized,
         company: companySanitized,
         invoiceDate: req.body.date,
+        ammount: req.body.ammount,
         author: req.user.sub,
         done: req.body?.done
       })

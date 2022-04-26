@@ -20,8 +20,12 @@ const schema = new mongoose.Schema({
     trim: true
   },
   invoiceDate: {
-    type: Date
+    type: String
     // required: [true, 'Date is required.'],
+  },
+  ammount: {
+    type: Number,
+    default: 0
   },
   company: {
     type: String,
