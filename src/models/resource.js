@@ -20,12 +20,11 @@ const schema = new mongoose.Schema({
     trim: true
   },
   invoiceDate: {
-    type: String
-    // required: [true, 'Date is required.'],
+    type: String,
+    required: [true, 'Date is required.']
   },
-  ammount: {
-    type: Number,
-    default: 0
+  amount: {
+    type: Number
   },
   company: {
     type: String,
@@ -35,6 +34,24 @@ const schema = new mongoose.Schema({
   done: {
     type: Boolean,
     default: false
+  },
+  transactionType: {
+    type: String,
+    required: [true, 'Transaction Type is required.'],
+    trim: true,
+    enum: ['Leverantörsfaktura', 'Kundfaktura', 'Utlägg']
+  },
+  transactionCategory: {
+    type: String,
+    required: [true, 'Transaction Category is required.'],
+    trim: true,
+    enum: ['Bensin', 'Material', 'Mobil', 'Internet', 'Försäkring', 'Övrigt', 'Försäljning']
+  },
+  account: {
+    type: Number,
+    required: [true, 'Content Type is required.'],
+    trim: true,
+    enum: [5611, 4010, 6212, 6230, 6310, 6991, 3010]
   }
 
 }, {

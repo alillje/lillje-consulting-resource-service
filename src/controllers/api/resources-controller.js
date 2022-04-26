@@ -5,8 +5,10 @@
  * @version 1.0.0
  */
 
-import createError from 'http-errors'
 import { Resource } from '../../models/resource.js'
+import { setAccountNumber } from '../../helper-functions/set-account-number.js'
+
+import createError from 'http-errors'
 import validator from 'validator'
 
 /**
@@ -74,12 +76,13 @@ export class ResourcesController {
     if (req.query.company) {
       // Make search case insensitive
       query.company = new RegExp(`^${req.query.company}$`, 'i')
-    } else if (req.query.done) {
+    } if (req.query.done) {
       query.done = req.query.done
-    } else if (req.user?.admin && req.query.author) {
+    } if (req.user?.admin && req.query.author) {
       query.author = req.query.author
+    } if (req.query.invoiceDate) {
+      query.invoiceDate = req.query.invoiceDate
     }
-    console.log(req.user)
     try {
       // Find resources only for authenticated user and respond
       // const resources = await Resource.find({ author: req.user.sub })
@@ -102,26 +105,33 @@ export class ResourcesController {
    */
   async create (req, res, next) {
     try {
-      if (!req.body.date || !req.body.description || !req.body.company) {
+      if (!req.body.date || !req.body.description || !req.body.company || !req.body.transactionType) {
         throw new Error('Validation error')
       }
-
       // Validate and blacklist "<>" before saving to any database
-      const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
-      const companySanitized = req.body.company ? validator.blacklist(req.body.company, '<>') : undefined
+      const descriptionSanitized = req.body.description ? validator.escape(req.body.description) : undefined
+      const companySanitized = req.body.company ? validator.escape(req.body.company) : undefined
+      const transactionCategorySanitized = req.body.transactionCategory ? validator.escape(req.body.transactionCategory) : undefined
+      const transactionTypeSanitized = req.body.transactionType ? validator.escape(req.body.transactionType) : undefined
+
+      const account = setAccountNumber(transactionTypeSanitized, transactionCategorySanitized)
 
       // Set properties of image
       const resource = new Resource({
         description: descriptionSanitized,
         company: companySanitized,
         invoiceDate: req.body.date,
-        ammount: req.body.ammount,
+        amount: req.body.amount,
         author: req.user.sub,
-        done: req.body?.done
+        done: req.body.done,
+        transactionType: transactionTypeSanitized,
+        transactionCategory: transactionCategorySanitized,
+        account: account
       })
 
       await resource.save()
 
+      console.log(resource)
       // const location = new URL(
       //   `${req.protocol}://${req.get('host')}${req.baseUrl}/${
       //     image._id
@@ -185,7 +195,7 @@ export class ResourcesController {
       const titleSanitized = req.body.title ? validator.blacklist(req.body.title, '<>') : undefined
       const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
 
-      // Set properties of image
+      // Set properties of resource
       req.resource.title = titleSanitized
       req.resource.description = descriptionSanitized
       req.resource.author = req.user.sub
