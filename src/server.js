@@ -26,14 +26,14 @@ try {
   // Set various HTTP headers to make the application little more secure (https://www.npmjs.com/package/helmet).
   app.use(helmet())
 
-  // app.use((req, res, next) => {
-  //   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
-  //   res.header(
-  //     'Access-Control-Allow-Headers',
-  //     'Origin, X-Requested-With, Content-Type, Accept'
-  //   )
-  //   next()
-  // })
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN)
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept'
+    )
+    next()
+  })
 
   // Set up a morgan logger using the dev format for log entries.
   app.use(logger('dev'))
