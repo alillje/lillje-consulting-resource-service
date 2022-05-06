@@ -72,8 +72,9 @@ export class ResourcesController {
    */
   async findAll (req, res, next) {
     const query = {}
-    query.author = req.user.sub
-    if (req.query.company) {
+    if (!req.user.admin) {
+      query.author = req.user.sub
+    } if (req.query.company) {
       // Make search case insensitive
       query.company = new RegExp(`^${req.query.company}$`, 'i')
     } if (req.query.done) {
@@ -89,7 +90,6 @@ export class ResourcesController {
 
       // const resources = await Resource.find({ author: req.user.sub })
       const resources = await Resource.find(query)
-
       res.json(resources)
     } catch (error) {
       next(error)
@@ -168,7 +168,7 @@ export class ResourcesController {
       req.resource.title = req.body.title ? titleSanitized : req.resource.title
       req.resource.description = req.body.description ? descriptionSanitized : req.resource.title
 
-      await req.image.save()
+      await req.resource.save()
 
       res
         .status(204)

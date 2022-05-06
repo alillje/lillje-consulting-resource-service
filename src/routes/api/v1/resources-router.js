@@ -59,7 +59,9 @@ const authenticateJWT = (req, res, next) => {
  */
 const authorizeResource = (req, res, next) => {
   try {
-    if (req.resource.author !== req.user.sub) {
+    // Check if admin or authorized user
+    if (!req.user.admin && req.resource.author !== req.user.sub) {
+      console.log(req.user.admin)
       throw new Error('No right to access.')
     }
     next()
