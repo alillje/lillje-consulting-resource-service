@@ -2,14 +2,15 @@
  * Module for the ImagesController.
  *
  * @author Andreas Lillje
- * @version 1.0.0
+ * @version 2.3.1
  */
 
 import { Resource } from '../../models/resource.js'
 import { setAccountNumber } from '../../helper-functions/set-account-number.js'
-
+import { calculateAmountIncVat } from '../../helper-functions/calculate-amount-inc-vat.js'
 import createError from 'http-errors'
 import validator from 'validator'
+import CryptoJS from 'crypto-js'
 
 /**
  * Encapsulates a controller.
@@ -35,10 +36,8 @@ export class ResourcesController {
         return
       }
 
-      // Provide the image to the request object.
+      // Provide the resource to the request object.
       req.resource = resource
-
-      // Next middleware.
       next()
     } catch (err) {
       let error = err
@@ -72,6 +71,7 @@ export class ResourcesController {
    */
   async findAll (req, res, next) {
     const query = {}
+    // Queries
     if (!req.user.admin) {
       query.author = req.user.sub
     } if (req.query.company) {
@@ -83,14 +83,41 @@ export class ResourcesController {
       query.author = req.query.author
     } if (req.query.invoiceDate) {
       query.invoiceDate = req.query.invoiceDate
+    } if (req.query.transactionType) {
+      query.transactionType = req.query.transactionType
     }
-    try {
-      // Find resources only for authenticated user and respond
-      // const resources = await Resource.find({ author: req.user.sub })
 
-      // const resources = await Resource.find({ author: req.user.sub })
-      const resources = await Resource.find(query)
-      res.json(resources)
+    // Pagination
+    const page = parseInt(req.query.page)
+    const limit = parseInt(req.query.limit)
+
+    const startIndex = (page - 1) * limit
+    const endIndex = page * limit
+
+    const results = {}
+
+    try {
+      const allResources = await Resource.find(query)
+      // Find resources only for authenticated user and respond
+      // Sorts by invoiceDate
+      results.resources = await Resource.find(query).limit(limit).skip(startIndex).sort({ invoiceDate: -1 })
+
+      // Count pages
+      if (endIndex < allResources.length) {
+        results.next = {
+          page: page + 1,
+          limit: limit
+        }
+      }
+      if (startIndex < 0) {
+        results.previous = {
+          page: page - 1,
+          limit: limit
+        }
+      }
+
+      results.pages = Math.ceil(allResources.length / limit)
+      res.json(results)
     } catch (error) {
       next(error)
     }
@@ -105,7 +132,7 @@ export class ResourcesController {
    */
   async create (req, res, next) {
     try {
-      if (!req.body.date || !req.body.description || !req.body.company || !req.body.transactionType) {
+      if (!req.body.date || !req.body.description || !req.body.company || !req.body.transactionType || !req.body.documentUrl) {
         throw new Error('Validation error')
       }
       // Validate and blacklist "<>" before saving to any database
@@ -115,32 +142,27 @@ export class ResourcesController {
       const transactionTypeSanitized = req.body.transactionType ? validator.escape(req.body.transactionType) : undefined
 
       const account = setAccountNumber(transactionTypeSanitized, transactionCategorySanitized)
+      // Encrypt document before saving into database
+      const encryptedDocument = CryptoJS.AES.encrypt(req.body.documentUrl, process.env.DOCUMENT_ENCRYPT_SECRET).toString()
 
       // Set properties of image
       const resource = new Resource({
         description: descriptionSanitized,
         company: companySanitized,
         invoiceDate: req.body.date,
-        amount: req.body.amount,
+        vat: req.body.vat,
+        amountExVat: req.body.amountExVat,
+        amountIncVat: calculateAmountIncVat(req.body.amountExVat, req.body.vat),
         author: req.user.sub,
+        authorName: req.user.company,
         done: req.body.done,
         transactionType: transactionTypeSanitized,
         transactionCategory: transactionCategorySanitized,
-        account: account
+        account: account,
+        documentUrl: encryptedDocument
       })
 
       await resource.save()
-
-      console.log(resource)
-      // const location = new URL(
-      //   `${req.protocol}://${req.get('host')}${req.baseUrl}/${
-      //     image._id
-      //   }`
-      // )
-
-      // Respond with resource data
-
-      // .location(location.href)
       res
         .status(201)
         .json(resource)
@@ -160,52 +182,24 @@ export class ResourcesController {
    */
   async updatePatch (req, res, next) {
     try {
-      // Sanitize data description if any
-      const titleSanitized = req.body.title ? validator.blacklist(req.body.data, '<>') : undefined
-      const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
-
-      // Use conditional tenary operator to check if description or contentType has been changed
-      req.resource.title = req.body.title ? titleSanitized : req.resource.title
-      req.resource.description = req.body.description ? descriptionSanitized : req.resource.title
-
-      await req.resource.save()
-
-      res
-        .status(204)
-        .end()
-    } catch (err) {
-      const error = createError(400)
-      next(error)
-    }
-  }
-
-  /**
-   * Updates a specific image.
-   *
-   * @param {object} req - Express request object.
-   * @param {object} res - Express response object.
-   * @param {Function} next - Express next middleware function.
-   */
-  async update (req, res, next) {
-    try {
-      if (!req.body.title || !req.body.description) {
-        throw new Error('Validation error')
+      let done
+      if (req.body.done === 'false') {
+        done = false
+      } else if (req.body.done === 'true') {
+        done = true
+      } else if (!req.body.done) {
+        const error = createError(400)
+        next(error)
       }
-
-      const titleSanitized = req.body.title ? validator.blacklist(req.body.title, '<>') : undefined
-      const descriptionSanitized = req.body.description ? validator.blacklist(req.body.description, '<>') : undefined
-
-      // Set properties of resource
-      req.resource.title = titleSanitized
-      req.resource.description = descriptionSanitized
-      req.resource.author = req.user.sub
-
+      req.resource.done = done
       await req.resource.save()
 
       res
         .status(204)
         .end()
     } catch (err) {
+      console.log(err)
+
       const error = createError(400)
       next(error)
     }

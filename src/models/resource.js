@@ -2,7 +2,7 @@
  * Mongoose model Image.
  *
  * @author Andreas Lillje
- * @version 1.0.0
+ * @version 2.3.1
  */
 
 import mongoose from 'mongoose'
@@ -19,11 +19,24 @@ const schema = new mongoose.Schema({
     required: [true, 'Author is required.'],
     trim: true
   },
+  authorName: {
+    type: String,
+    required: [true, 'Authorname is required.'],
+    trim: true
+  },
   invoiceDate: {
     type: String,
     required: [true, 'Date is required.']
   },
-  amount: {
+  vat: {
+    type: Number,
+    emum: [0, 0.06, 0.12, 0.25]
+
+  },
+  amountExVat: {
+    type: Number
+  },
+  amountIncVat: {
     type: Number
   },
   company: {
@@ -43,7 +56,7 @@ const schema = new mongoose.Schema({
   },
   transactionCategory: {
     type: String,
-    required: [true, 'Transaction Category is required.'],
+    default: 'Övrigt',
     trim: true,
     enum: ['Bensin', 'Material', 'Mobil', 'Internet', 'Försäkring', 'Övrigt', 'Försäljning']
   },
@@ -52,6 +65,9 @@ const schema = new mongoose.Schema({
     required: [true, 'Content Type is required.'],
     trim: true,
     enum: [5611, 4010, 6212, 6230, 6310, 6991, 3010]
+  },
+  documentUrl: {
+    type: String
   }
 
 }, {

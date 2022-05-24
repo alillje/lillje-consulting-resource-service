@@ -8,8 +8,11 @@
  */
 export const setAccountNumber = (transactionType, transactionCategory) => {
   let accountNumber
-  if (transactionType.toLowerCase() === 'leverantörsfaktura') {
-    switch (transactionType.toLowerCase()) {
+  transactionType ? transactionType = transactionType.toLowerCase() : transactionType = undefined
+  transactionCategory ? transactionCategory = transactionCategory.toLowerCase() : transactionCategory = undefined
+
+  if (transactionType === 'leverantörsfaktura') {
+    switch (transactionCategory) {
       case 'bensin':
         accountNumber = 5611
         break
@@ -28,7 +31,7 @@ export const setAccountNumber = (transactionType, transactionCategory) => {
       default:
         accountNumber = 6991
     }
-  } else if (transactionType.toLowerCase() === 'kundfaktura') {
+  } else if (transactionType === 'kundfaktura') {
     accountNumber = 3010
   } else {
     accountNumber = 3010

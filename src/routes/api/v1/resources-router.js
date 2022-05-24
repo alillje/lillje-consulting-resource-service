@@ -2,7 +2,7 @@
  * API version 1 routes.
  *
  * @author Andreas Lillje
- * @version 1.0.0
+ * @version 2.3.1
  */
 
 import express from 'express'
@@ -36,10 +36,9 @@ const authenticateJWT = (req, res, next) => {
     const payload = jwt.verify(token, Buffer.from(process.env.ACCESS_TOKEN_SECRET, 'base64').toString('ascii'))
     req.user = {
       sub: payload.sub,
-      username: payload.username,
+      company: payload.company,
       admin: payload.admin
     }
-
     next()
   } catch (err) {
     const error = createError(401)
@@ -61,7 +60,29 @@ const authorizeResource = (req, res, next) => {
   try {
     // Check if admin or authorized user
     if (!req.user.admin && req.resource.author !== req.user.sub) {
-      console.log(req.user.admin)
+      throw new Error('No right to access.')
+    }
+    next()
+  } catch (err) {
+    const error = createError(403)
+    error.cause = err
+    next(error)
+  }
+}
+
+/**
+ * Authorizes admin only action.
+ *
+ * Checks if user has right/access to a specific resource.
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ */
+const authorizeAdminResource = (req, res, next) => {
+  try {
+    // Check if admin or authorized user
+    if (!req.user.admin) {
       throw new Error('No right to access.')
     }
     next()
@@ -76,40 +97,29 @@ const authorizeResource = (req, res, next) => {
 //  Routes
 // ------------------------------------------------------------------------------
 
-// Provide req.image to the route if :id is present in the route path.
+// Provide req.resource to the route if :id is present in the route path.
 router.param('id', (req, res, next, id) => controller.loadResource(req, res, next, id))
 
-// GET images
 router.get('/',
   authenticateJWT, (req, res, next) => controller.findAll(req, res, next)
 )
 
-// GET images/:id
 router.get('/:id',
   authenticateJWT, authorizeResource,
   (req, res, next) => controller.find(req, res, next)
 )
 
-// POST images
 router.post('/',
   authenticateJWT,
   (req, res, next) => controller.create(req, res, next)
 )
 
-// PATCH images
 router.patch('/:id',
-  authenticateJWT, authorizeResource,
+  authenticateJWT, authorizeAdminResource,
   (req, res, next) => controller.updatePatch(req, res, next)
 )
 
-// DELETE images
 router.delete('/:id',
   authenticateJWT, authorizeResource,
   (req, res, next) => controller.delete(req, res, next)
-)
-
-// PUT images
-router.put('/:id',
-  authenticateJWT, authorizeResource,
-  (req, res, next) => controller.update(req, res, next)
 )

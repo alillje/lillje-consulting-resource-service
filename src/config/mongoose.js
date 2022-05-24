@@ -2,7 +2,7 @@
  * Mongoose configuration.
  *
  * @author Andreas Lillje
- * @version 1.0.0
+ * @version 2.3.1
  */
 
 import mongoose from 'mongoose'
@@ -27,6 +27,7 @@ export const connectDB = async () => {
       process.exit(0)
     })
   })
+
   // Connect to the server.
   return mongoose.connect(process.env.DB_CONNECTION_STRING)
 }
