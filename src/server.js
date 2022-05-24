@@ -2,7 +2,7 @@
  * The starting point of the application.
  *
  * @author Andreas Lillje
- * @version 1.0.0
+ * @version 2.3.1
  */
 
 import express from 'express'
@@ -38,11 +38,11 @@ try {
   // Set up a morgan logger using the dev format for log entries.
   app.use(logger('dev'))
 
+  // Increase pay load max size
+  app.use(express.json({ limit: '20mb' }))
+
   // Parse requests of the content type application/json.
   app.use(express.json())
-
-  // Increase pay load max size
-  app.use(express.json({ limit: '500kb' }))
 
   // Register routes.
   app.use('/', router)
