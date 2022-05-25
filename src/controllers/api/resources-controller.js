@@ -26,16 +26,13 @@ export class ResourcesController {
    */
   async loadResource (req, res, next, id) {
     try {
-      // Get the image.
+      // Get the resource.
       const resource = await Resource.findById(id)
-
-      // If no image found send 404, set error message.
+      // If no resource found send 404, set error message.
       if (!resource) {
         const error = createError(404)
-        next(error)
-        return
+        return next(error)
       }
-
       // Provide the resource to the request object.
       req.resource = resource
       next()
@@ -214,6 +211,7 @@ export class ResourcesController {
    */
   async delete (req, res, next) {
     try {
+      console.log(req)
       // Delete from resource DB
       await req.resource.deleteOne()
       res

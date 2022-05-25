@@ -120,6 +120,6 @@ router.patch('/:id',
 )
 
 router.delete('/:id',
-  authenticateJWT, authorizeResource,
+  authenticateJWT, authorizeAdminResource,
   (req, res, next) => controller.delete(req, res, next)
 )
