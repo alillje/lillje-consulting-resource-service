@@ -35,6 +35,9 @@ try {
     next()
   })
 
+  // Disable e-tag to avoid 304 status code
+  app.set('etag', false)
+
   // Set up a morgan logger using the dev format for log entries.
   app.use(logger('dev'))
 
