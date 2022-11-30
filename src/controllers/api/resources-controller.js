@@ -112,7 +112,6 @@ export class ResourcesController {
           limit: limit
         }
       }
-
       results.pages = Math.ceil(allResources.length / limit)
       res.json(results)
     } catch (error) {
