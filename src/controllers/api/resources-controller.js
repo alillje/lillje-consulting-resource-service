@@ -178,7 +178,6 @@ export class ResourcesController {
    */
   async updatePatch (req, res, next) {
     try {
-      console.log(req.body)
       let done
       if (req.body.done === 'false') {
         done = false
